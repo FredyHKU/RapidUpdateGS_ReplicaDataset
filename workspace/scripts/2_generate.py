@@ -167,50 +167,50 @@ def main():
 
         print(f"Generated trajectory with {len(positions)} frames")
 
-        # Step 2: Preview or Full Render
+        # Step 2: Rendering
+        print("\n" + "=" * 70)
         if args.preview_only:
-            # PREVIEW MODE
-            print("\n" + "=" * 70)
             print("STEP 2: PREVIEW MODE")
-            print("=" * 70)
+        else:
+            print("STEP 2: FULL RGB-D DATASET RENDERING")
+        print("=" * 70)
 
-            # Generate trajectory plots with keyframe markers
-            print("\n[2A] Generating trajectory visualization plots...")
-            plot_output_dir = output_root / scene_name
-            keyframe_positions = np.array([kf['pos'] for kf in keyframes])
-            generator.generate_trajectory_plots(
-                positions=positions,
-                output_dir=str(plot_output_dir),
-                keyframe_positions=keyframe_positions
-            )
+        scene_output_dir = output_root / scene_name
 
-            print(f"Saved trajectory plots to: {plot_output_dir}/trajectory_preview_*.png")
+        # Common Step A: Generate trajectory plots (always done)
+        print("\n[2A] Generating trajectory visualization plots...")
+        keyframe_positions = np.array([kf['pos'] for kf in keyframes])
+        generator.generate_trajectory_plots(
+            positions=positions,
+            output_dir=str(scene_output_dir),
+            keyframe_positions=keyframe_positions
+        )
+        print(f"Saved trajectory plots to: {scene_output_dir}/trajectory_preview_*.png")
 
-            # Initialize renderer (pass dataset_path for Replica CAD)
-            renderer = DatasetRenderer(
-                scene_path=scene_path,
-                config=config,
-                dataset_path=dataset_path if 'dataset_path' in locals() else None
-            )
+        # Initialize renderer (pass dataset_path for Replica CAD)
+        renderer = DatasetRenderer(
+            scene_path=scene_path,
+            config=config,
+            dataset_path=dataset_path if 'dataset_path' in locals() else None
+        )
 
-            # Render original keyframes (for verification)
-            print("\n[2B] Rendering original keyframes (for verification)...")
-            keyframe_positions = np.array([kf['pos'] for kf in keyframes])
-            keyframe_rotations = np.array([kf['rot'] for kf in keyframes])
+        # Common Step B: Render original keyframes (always done for verification)
+        print("\n[2B] Rendering original keyframes (for verification)...")
+        keyframe_rotations = np.array([kf['rot'] for kf in keyframes])
+        keyframes_dir = scene_output_dir / "keyframes_render"
+        renderer.render_sequence(
+            positions=keyframe_positions,
+            rotations=keyframe_rotations,
+            output_dir=keyframes_dir,
+            indices=None  # Render all keyframes
+        )
 
-            keyframes_dir = output_root / scene_name / "keyframes_render"
-            renderer.render_sequence(
-                positions=keyframe_positions,
-                rotations=keyframe_rotations,
-                output_dir=keyframes_dir,
-                indices=None  # Render all keyframes
-            )
-
-            # Render sparse preview frames
+        # Mode-specific rendering
+        if args.preview_only:
+            # Preview mode: Render sparse preview frames
             print("\n[2C] Rendering interpolated preview frames...")
             sample_indices = np.linspace(0, len(positions) - 1, 6, dtype=int).tolist()
-
-            preview_frames_dir = output_root / scene_name / "preview_frames"
+            preview_frames_dir = scene_output_dir / "preview_frames"
             renderer.render_sequence(
                 positions=positions,
                 rotations=rotations,
@@ -219,14 +219,13 @@ def main():
             )
 
             renderer.close()
-            # generator doesn't have a close() method
 
             # Summary
             print("\n" + "=" * 70)
             print("PREVIEW COMPLETE!")
             print("=" * 70)
             print(f"\nTrajectory Plots:")
-            print(f"  {output_root / scene_name / 'trajectory_preview_*.png'}")
+            print(f"  {scene_output_dir / 'trajectory_preview_*.png'}")
             print(f"\nOriginal Keyframes Render (for verification):")
             print(f"  {keyframes_dir}/ ({len(keyframes)} frames)")
             print(f"\nInterpolated Preview Frames:")
@@ -235,35 +234,8 @@ def main():
             print(f"      to verify that position/rotation data was saved correctly.")
 
         else:
-            # FULL RENDER MODE
-            print("\n" + "=" * 70)
-            print("STEP 2: FULL RGB-D DATASET RENDERING")
-            print("=" * 70)
-
-            scene_output_dir = output_root / scene_name
-
-            # Initialize renderer (pass dataset_path for Replica CAD)
-            renderer = DatasetRenderer(
-                scene_path=scene_path,
-                config=config,
-                dataset_path=dataset_path if 'dataset_path' in locals() else None
-            )
-
-            # Render original keyframes (for verification)
-            print("\n[2A] Rendering original keyframes (for verification)...")
-            keyframe_positions = np.array([kf['pos'] for kf in keyframes])
-            keyframe_rotations = np.array([kf['rot'] for kf in keyframes])
-
-            keyframes_dir = scene_output_dir / "keyframes_render"
-            renderer.render_sequence(
-                positions=keyframe_positions,
-                rotations=keyframe_rotations,
-                output_dir=keyframes_dir,
-                indices=None  # Render all keyframes
-            )
-
-            # Render full interpolated sequence
-            print("\n[2B] Rendering full interpolated sequence...")
+            # Full render mode: Render all frames and save trajectory data
+            print("\n[2C] Rendering full interpolated sequence...")
             results_dir = scene_output_dir / "results"
             renderer.render_sequence(
                 positions=positions,
@@ -271,8 +243,7 @@ def main():
                 output_dir=results_dir
             )
 
-            # Save trajectory file
-            print("\n[2C] Saving trajectory data...")
+            print("\n[2D] Saving trajectory data...")
             traj_path = scene_output_dir / "traj.txt"
             fps = trajectory_settings.get('fps', 30)
             generator.save_traj_txt(
@@ -282,13 +253,11 @@ def main():
                 fps=fps
             )
 
-            # Save camera parameters
-            print("\n[2D] Saving camera parameters...")
+            print("\n[2E] Saving camera parameters...")
             cam_params_path = scene_output_dir / "cam_params.json"
             renderer.save_camera_params(str(cam_params_path))
 
             renderer.close()
-            # generator doesn't have a close() method
 
             # Summary
             print("\n" + "=" * 70)
