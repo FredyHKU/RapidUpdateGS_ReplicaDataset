@@ -6,6 +6,10 @@ replica_v1/
 # output folders
 output/
 
+# config files (except default)
+config/*.yaml
+!config/default.yaml
+
 # Obsolete code
 obsolete/
 
