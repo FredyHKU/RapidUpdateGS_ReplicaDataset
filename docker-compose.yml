@@ -1,0 +1,31 @@
+services:
+  habitat-sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: habitat-sim-gui
+
+    environment:
+      # X11 forwarding configuration for Windows
+      - DISPLAY=host.docker.internal:0.0
+      - QT_X11_NO_MITSHM=1
+      - LIBGL_ALWAYS_INDIRECT=0
+
+    volumes:
+      # Map the Replica-Dataset from Windows to container
+      - ./replica_v1/data:/replica_v1
+      - ./replica_cad/versioned_data/replica_cad_dataset:/replica_cad
+      - ./replica_cad_baked_lighting/versioned_data/replica_cad_baked_lighting:/replica_cad_baked_lighting
+      # Map workspace for your code and experiments
+      - ./workspace:/workspace
+
+    # Allow connection to X server
+    network_mode: bridge
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Optional: Add extra hosts for display forwarding
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

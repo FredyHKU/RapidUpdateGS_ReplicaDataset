@@ -1,0 +1,76 @@
+# ==========================================
+# Habitat SLAM Data Generation Config
+# ==========================================
+
+# 1. Basic Settings
+scene:
+  # For Replica CAD dataset with scene_dataset_config
+  dataset: "/replica_cad_baked_lighting/replicaCAD_baked.scene_dataset_config.json"
+  name: "Baked_sc0_staging_01"
+
+output_root: "./output"
+seed: 1024  # Critical for reproducible shake/noise
+
+# 2. Trajectory Generation Parameters
+trajectory:
+  mode: "interactive"
+  # Height, Width of the X11 interactive window
+  # IMPORTANT: Should match camera resolution for crisp rendering!
+  interactive_window_size: [480, 640]  # [height, width] - matches camera resolution
+  num_frames: 2000
+  fps: 60
+  smoothness: 0.5      # Spline smoothness (0.0 = exact fit, >0.0 = smoother)
+  interpolation: "cubic" # "cubic" or "slerp"
+
+  # Agent configuration for interactive recording
+  # height/radius: Agent collision cylinder dimensions (affects physics and navigation)
+  # sensor_height: Camera Y-axis offset from agent position (1.5m = human eye height)
+  # Note: Keyframes store actual camera positions, rendering ignores these parameters
+  agent:
+    height: 1.5         # Agent collision cylinder height
+    radius: 0.1         # Agent collision radius
+    sensor_height: 1.5  # Camera Y-offset from agent position
+
+  head_sway:
+    enabled: true
+    amplitude: 2.0     # Degrees of yaw sway (mimics natural head wobble)
+    frequency: 1.0     # Hz (breathing rate)
+    # WARNING: Sway is applied AFTER interpolation.
+
+# 3. Camera Parameters (Standard Replica Settings)
+# Reference: ~/RapidUpdateGS_docker/datasets/replica/cam_params.json
+# IMPORTANT: Window size should match camera resolution to avoid blurry scaling!
+camera:
+  width: 1200
+  height: 680
+  fx: 600.0
+  fy: 600.0
+  cx: 599.5
+  cy: 339.5
+  # Note: Habitat Sim uses HFoV, calculated from fx and width
+  # hfov = 2 * arctan(width / (2 * fx))
+  hfov: 90.0
+  depth_scale: 6553.5   # Replica default: 1.0m = 6553.5
+
+# 4. Rendering Quality Settings
+rendering:
+  # Which GPU to use (0 = first GPU, 1 = second GPU).
+  # Set to -1 or null for CPU rendering
+  # gpu_device_id: 0
+
+  enable_hbao: false         # Horizon-based ambient occlusion (soft shadows) - DISABLED to match official viewer
+  requires_textures: true    # Load textures for RGB rendering
+  jpeg_quality: 100          # JPEG compression quality (0-100, 100 = best)
+
+# 5. Physics Settings
+physics:
+  # CRITICAL: Must enable physics to load articulated objects (furniture with movable parts)
+  # Replica CAD scenes contain articulated objects like:
+  #   - Refrigerators (fridge) with opening doors
+  #   - Kitchen counters with drawers
+  #   - Kitchen cupboards with cabinet doors
+  #   - Doors that can swing open
+  #   - Cabinets and chests of drawers
+  # Without physics enabled, these objects will NOT be loaded and scenes appear empty.
+  # Requires Bullet physics engine (already installed via Dockerfile: "habitat-sim withbullet")
+  enable_physics: true
