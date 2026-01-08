@@ -7,8 +7,8 @@ replica_v1/
 output/
 
 # config files (except default)
-config/*.yaml
-!config/default.yaml
+workspace/config/*.yaml
+!workspace/config/default.yaml
 
 # Obsolete code
 obsolete/
