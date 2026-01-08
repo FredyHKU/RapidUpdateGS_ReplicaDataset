@@ -88,7 +88,7 @@ def main():
         help="Path to YAML configuration file"
     )
     parser.add_argument(
-        "--preview-only",
+        "--preview-only", "--preview",
         action="store_true",
         help="Generate trajectory plots and preview frames only (no full render)"
     )
