@@ -24,11 +24,23 @@ Docker-based tool for recording camera trajectories and generating RGB-D dataset
 **1. Start X11 Server (VcXsrv)**
 
 Launch XLaunch with these settings:
+
+**Step 1 - Display settings:**
 - Display: Multiple windows
-- Client startup: Start no client
-- ✅ **Disable access control** (CRITICAL!)
-- ✅ Clipboard
-- ❌ Native opengl
+- Display number: -1
+
+**Step 2 - Client startup:**
+- Start no client
+
+**Step 3 - Extra settings (CRITICAL!):**
+- ✅ **Clipboard** (enable copy/paste)
+- ✅ **Disable access control** (REQUIRED - allows Docker to connect)
+- ❌ **Native opengl** (uncheck - prevents rendering issues)
+- **Additional parameters for VcXsrv:** `-dpi 96`
+
+  **Important for Multi-Monitor Setups:** The `-dpi 96` parameter is CRITICAL if you use multiple monitors or DPI scaling (125%, 150%, etc.). Without it, GUI windows will appear at incorrect sizes (e.g., 1280x530 instead of 640x480). This forces standard 96 DPI (100% scaling) for consistent window rendering.
+
+  Alternative: If `-dpi 96` causes issues, try `-dpi auto` to let VcXsrv detect DPI automatically.
 
 **2. Build and Start Container**
 
@@ -299,6 +311,19 @@ trajectory:
 2. ✅ "Disable access control" enabled in XLaunch
 3. ✅ `echo $DISPLAY` shows `host.docker.internal:0.0` inside container
 4. ✅ Windows Firewall allows VcXsrv
+
+### GUI Window Size is Wrong (Multi-Monitor Issue)
+
+**Symptoms:** Window appears at 1280x530 instead of configured 640x480 (for example)
+
+**Cause:** VcXsrv using DPI scaling from Windows display settings (e.g., 125%, 150%)
+
+**Fix:** Add `-dpi 96` to VcXsrv startup parameters (see Setup section above)
+
+**Alternative fixes:**
+- Use `-dpi auto` instead of `-dpi 96`
+- Temporarily set Windows display scaling to 100%
+- Restart VcXsrv and Docker container after changing DPI settings
 
 ## Docker Commands Reference
 
