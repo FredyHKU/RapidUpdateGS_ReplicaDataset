@@ -16,7 +16,7 @@ trajectory:
   mode: "interactive"
   # Height, Width of the X11 interactive window
   # IMPORTANT: Should match camera resolution for crisp rendering!
-  interactive_window_size: [480, 640]  # [height, width] - matches camera resolution
+  interactive_window_size: [680, 1200]  # [height, width] - matches camera resolution
   num_frames: 2000
   fps: 60
   smoothness: 0.5      # Spline smoothness (0.0 = exact fit, >0.0 = smoother)
