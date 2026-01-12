@@ -16,6 +16,8 @@ Features:
 """
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for headless environments
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 from scipy.spatial.transform import Rotation as R, Slerp
