@@ -152,13 +152,13 @@ class DatasetRenderer:
 
             # Save RGB as JPEG with specified quality
             rgb_img = Image.fromarray(rgb, mode='RGB')
-            rgb_path = output_path / f"frame{i:04d}.jpg"
+            rgb_path = output_path / f"frame{i:06d}.jpg"
             rgb_img.save(rgb_path, 'JPEG', quality=jpeg_quality)
 
             # Save Depth as 16-bit PNG
             depth_mm = (depth * depth_scale).astype(np.uint16)
             depth_img = Image.fromarray(depth_mm, mode='I;16')
-            depth_path = output_path / f"depth{i:04d}.png"
+            depth_path = output_path / f"depth{i:06d}.png"
             depth_img.save(depth_path)
 
     def save_camera_params(self, output_path: str):
